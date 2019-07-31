@@ -1,6 +1,6 @@
 package com.xumingxing.webpack.userfunction.repository;
 
-import com.xumingxing.webpack.userfunction.pojo.User;
+import com.xumingxing.webpack.userfunction.entity.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

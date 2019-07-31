@@ -3,7 +3,7 @@ package com.xumingxing.webpack.userfunction.handler;
 import com.xumingxing.webpack.userfunction.common.PageEntity;
 import com.xumingxing.webpack.userfunction.common.ResponseEntity;
 import com.xumingxing.webpack.userfunction.enumeration.ResponseStatus;
-import com.xumingxing.webpack.userfunction.pojo.User;
+import com.xumingxing.webpack.userfunction.entity.User;
 import com.xumingxing.webpack.userfunction.repository.UserReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -192,7 +192,7 @@ public class UserHandler {
     }
     /**
      * GET请求方式
-     * 逻辑删除
+     * 分页查询
      * MultiValueMap<String, String> stringStringMultiValueMap = serverRequest.queryParams();
      * Optional<String> value = serverRequest.queryParam("key")
      * 基于 skip 和 limit 分页

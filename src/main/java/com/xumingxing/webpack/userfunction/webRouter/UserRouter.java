@@ -21,19 +21,19 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
  * Location: webpack
  */
 @Component
-public class userRouter {
+public class UserRouter {
     @Autowired
     private UserHandler userHandler;
 
     @Bean
-    public RouterFunction<ServerResponse> mongoRouterFounction() {
+    public RouterFunction<ServerResponse> mongoRouterFunction() {
         return
                 /**
                  * GET请求
                  * 根据id获取user信息
                  * 返回查询信息
                  */
-                route(GET("/user/getall/{id}"), userHandler::getOne)
+                route(GET("/user/getone/{id}"), userHandler::getOne)
 
                         /**
                          * GET请求

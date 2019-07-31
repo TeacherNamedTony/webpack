@@ -1,4 +1,4 @@
-package com.xumingxing.webpack.userfunction.pojo;
+package com.xumingxing.webpack.userfunction.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
