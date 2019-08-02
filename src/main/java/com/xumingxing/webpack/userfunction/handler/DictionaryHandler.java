@@ -135,6 +135,39 @@ public class DictionaryHandler {
      * @param serverRequest
      * @return
      */
+//    public Mono<ServerResponse> addJson(ServerRequest serverRequest) {
+//        Aggregation aggregation5 = Aggregation.newAggregation(
+//                Aggregation.match(Criteria.where("classify").is("select")),
+//                Aggregation.unwind("sort"),
+//                Aggregation.group("$classify").max("$sort").as("max_sort"));
+//        AggregationResults<Document> outputTypeCount5 =
+//                mongoTemplate.aggregate(aggregation5, "dictionary", Document.class);
+//        Document document = outputTypeCount5.getMappedResults().get(0);
+//        Integer max_sort = document.getInteger("max_sort");
+//        System.out.println("当前最大sort为"+max_sort);
+//        return ServerResponse
+//                //状态200
+//                .status(HttpStatus.OK)
+//                //contentType类型指定
+//                .contentType(MediaType.APPLICATION_JSON_UTF8)
+//                //读取内容
+//
+//                .body(serverRequest.bodyToMono(Dictionary.class)
+//                        .doOnNext(DictionaryValidate::validate)
+//                        .flatMap(dictionary -> {
+//                    // 校验器
+//                    //设置id
+//                    dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+//                    //设置操作时间
+//                    dictionary.setCreateTime(LocalDateTime.now());
+//                    //设置修改时间
+//                    dictionary.setReviseTime(LocalDateTime.now());
+//                    //设置查询后的排序为最大
+//                    dictionary.setSort(max_sort + 1);
+//                    //插入消费
+//                    return dictionaryReactiveRepository.insert(dictionary);
+//                }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
+//    }
     public Mono<ServerResponse> addJson(ServerRequest serverRequest) {
         Aggregation aggregation5 = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("classify").is("select")),
@@ -142,31 +175,17 @@ public class DictionaryHandler {
                 Aggregation.group("$classify").max("$sort").as("max_sort"));
         AggregationResults<Document> outputTypeCount5 =
                 mongoTemplate.aggregate(aggregation5, "dictionary", Document.class);
-        Document document = outputTypeCount5.getMappedResults().get(0);
-        Integer max_sort = document.getInteger("max_sort");
-        System.out.println("当前最大sort为"+max_sort);
+        System.out.println(outputTypeCount5.getMappedResults());
         return ServerResponse
                 //状态200
                 .status(HttpStatus.OK)
                 //contentType类型指定
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 //读取内容
-
                 .body(serverRequest.bodyToMono(Dictionary.class)
-                        .doOnNext(DictionaryValidate::validate)
                         .flatMap(dictionary -> {
-                    // 校验器
-                    //设置id
-                    dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
-                    //设置操作时间
-                    dictionary.setCreateTime(LocalDateTime.now());
-                    //设置修改时间
-                    dictionary.setReviseTime(LocalDateTime.now());
-                    //设置查询后的排序为最大
-                    dictionary.setSort(max_sort + 1);
-                    //插入消费
-                    return dictionaryReactiveRepository.insert(dictionary);
-                }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
+                            return dictionaryReactiveRepository.insert(dictionary);
+                        }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
     }
 
     /**
