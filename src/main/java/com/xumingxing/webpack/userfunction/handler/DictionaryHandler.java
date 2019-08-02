@@ -107,15 +107,12 @@ public class DictionaryHandler {
         String id1_sort = id.getFirst("id1_sort");
         String id2 = id.getFirst("id2");
         String id2_sort = id.getFirst("id2_sort");
-
         Query query=new Query(Criteria.where("id").is(id1));
         Update update = Update.update("sort",id2_sort);
         mongoTemplate.updateFirst(query, update, Dictionary.class,"dictionary");
-
         Query query1=new Query(Criteria.where("id").is(id2));
         Update update1 = Update.update("sort",id1_sort);
         mongoTemplate.updateFirst(query1, update1, Dictionary.class,"dictionary");
-
         return ServerResponse
                 //状态200
                 .status(HttpStatus.OK)
@@ -138,21 +135,15 @@ public class DictionaryHandler {
      * @return
      */
     public Mono<ServerResponse> addJson(ServerRequest serverRequest) {
-////        Aggregation aggregation1 = Aggregation.newAggregation(Aggregation.group("$classify").count().as("总人数"));
-////        AggregationResults<BasicDBObject> outputTypeCount1 =
-////                mongoTemplate.aggregate(aggregation1, "dictionary", BasicDBObject.class);
-////        System.out.println(outputTypeCount1.getMappedResults());
-
         Aggregation aggregation5 = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("classify").is("select")),
                 Aggregation.unwind("sort"),
-                Aggregation.group("$classify").max("$sort").as("最大值"));
+                Aggregation.group("$classify").max("$sort").as("max_sort"));
         AggregationResults<Document> outputTypeCount5 =
                 mongoTemplate.aggregate(aggregation5, "dictionary", Document.class);
         Document document = outputTypeCount5.getMappedResults().get(0);
-        Integer max = document.getInteger("最大值");
-        System.out.println(max);
-
+        Integer max_sort = document.getInteger("max_sort");
+        System.out.println(max_sort);
         return ServerResponse
                 //状态200
                 .status(HttpStatus.OK)
@@ -161,11 +152,13 @@ public class DictionaryHandler {
                 //读取内容
                 .body(serverRequest.bodyToMono(Dictionary.class).flatMap(dictionary -> {
 //                    设置id
-//                    dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+                    dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
                     //设置操作时间
                     dictionary.setCreateTime(LocalDateTime.now());
+                    //设置修改时间
+                    dictionary.setReviseTime(LocalDateTime.now());
                     //设置查询后的排序为最大
-                    dictionary.setSort(max + 1);
+                    dictionary.setSort(max_sort + 1);
                     //插入消费
                     return dictionaryReactiveRepository.insert(dictionary);
                 }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
@@ -186,9 +179,8 @@ public class DictionaryHandler {
                 .body(serverRequest.bodyToMono(Dictionary.class)
                         .flatMap(dictionary -> {
                             dictionary.setReviseTime(LocalDateTime.now());
-//                            return dictionaryReactiveRepository.save(dictionary);
-                            return dictionaryReactiveRepository.insert(dictionary);
-                        }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
+                            return dictionaryReactiveRepository.save(dictionary);
+                        }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))),String.class);
     }
 
     /**
@@ -230,8 +222,8 @@ public class DictionaryHandler {
         int page = Integer.parseInt(serverRequest.queryParam("page").orElse("1"));
         int size = Integer.parseInt(serverRequest.queryParam("size").orElse("5"));
         Query query = new Query();
-        serverRequest.queryParam("name").ifPresent(s -> query.addCriteria(Criteria.where("name").is(Integer.parseInt(s))));
-        serverRequest.queryParam("operate").ifPresent(s -> query.addCriteria(Criteria.where("operate").regex(s)));
+        serverRequest.queryParam("operate").ifPresent(s -> query.addCriteria(Criteria.where("operate").is(Integer.parseInt(s))));
+        serverRequest.queryParam("name").ifPresent(s -> query.addCriteria(Criteria.where("name").regex(s)));
         long count = mongoTemplate.count(query, Dictionary.class);
         query.skip((page - 1) * size).limit(size);
         List<Dictionary> examples = mongoTemplate.find(query, Dictionary.class);
@@ -256,13 +248,13 @@ public class DictionaryHandler {
         int size = Integer.parseInt(serverRequest.queryParam("size").orElse("5"));
         Query countQuery = new Query();
         Query dataQuery = new Query().skip((page - 1) * size).limit(size);
-        serverRequest.queryParam("name").ifPresent(s -> {
-            countQuery.addCriteria(Criteria.where("name").is(Integer.parseInt(s)));
-            dataQuery.addCriteria(Criteria.where("name").is(Integer.parseInt(s)));
-        });
         serverRequest.queryParam("operate").ifPresent(s -> {
-            countQuery.addCriteria(Criteria.where("operate").regex(s));
-            dataQuery.addCriteria(Criteria.where("operate").regex(s));
+            countQuery.addCriteria(Criteria.where("operate").is(Integer.parseInt(s)));
+            dataQuery.addCriteria(Criteria.where("operate").is(Integer.parseInt(s)));
+        });
+        serverRequest.queryParam("name").ifPresent(s -> {
+            countQuery.addCriteria(Criteria.where("name").regex(s));
+            dataQuery.addCriteria(Criteria.where("name").regex(s));
         });
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(Mono.just(PageEntity.generateData())

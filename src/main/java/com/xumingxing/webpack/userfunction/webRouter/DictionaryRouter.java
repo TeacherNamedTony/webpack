@@ -31,10 +31,6 @@ public class DictionaryRouter {
                  * GET请求
                  * 根据id获取user信息
                  * 返回查询信息
-                 *
-                 * 徐明星 2019
-                 * xumingxing 2019
-                 *
                  */
                 route(GET("/dictionary/getone/{id}"), dictionaryHandler::getOne)
 

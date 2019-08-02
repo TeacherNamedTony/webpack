@@ -39,8 +39,7 @@ public class Dictionary {
         /**
          * 字典名称
          */
-        @NotEmpty
-        @Size(min = 2, max = 10, message = "联系人名称")
+        @NotBlank(message = "数据字典项目名称不能为空")
         @Field
         private String name;
         /**
