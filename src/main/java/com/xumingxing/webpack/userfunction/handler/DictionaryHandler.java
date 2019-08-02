@@ -6,6 +6,7 @@ import com.xumingxing.webpack.userfunction.common.ResponseEntity;
 import com.xumingxing.webpack.userfunction.enumeration.ResponseStatus;
 import com.xumingxing.webpack.userfunction.entity.Dictionary;
 import com.xumingxing.webpack.userfunction.repository.DictionaryReactiveRepository;
+import com.xumingxing.webpack.userfunction.validation.validate.DictionaryValidate;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -143,15 +144,19 @@ public class DictionaryHandler {
                 mongoTemplate.aggregate(aggregation5, "dictionary", Document.class);
         Document document = outputTypeCount5.getMappedResults().get(0);
         Integer max_sort = document.getInteger("max_sort");
-        System.out.println(max_sort);
+        System.out.println("当前最大sort为"+max_sort);
         return ServerResponse
                 //状态200
                 .status(HttpStatus.OK)
                 //contentType类型指定
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 //读取内容
-                .body(serverRequest.bodyToMono(Dictionary.class).flatMap(dictionary -> {
-//                    设置id
+
+                .body(serverRequest.bodyToMono(Dictionary.class)
+                        .doOnNext(DictionaryValidate::validate)
+                        .flatMap(dictionary -> {
+                    // 校验器
+                    //设置id
                     dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
                     //设置操作时间
                     dictionary.setCreateTime(LocalDateTime.now());

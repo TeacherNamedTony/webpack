@@ -39,7 +39,6 @@ public class Dictionary {
         /**
          * 字典名称
          */
-        @NotBlank(message = "数据字典项目名称不能为空")
         @Field
         private String name;
         /**
