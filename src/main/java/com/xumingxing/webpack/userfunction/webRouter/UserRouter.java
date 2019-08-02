@@ -26,7 +26,7 @@ public class UserRouter {
     private UserHandler userHandler;
 
     @Bean
-    public RouterFunction<ServerResponse> mongoRouterFunction() {
+    public RouterFunction<ServerResponse> mongoRouterFounction() {
         return
                 /**
                  * GET请求

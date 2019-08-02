@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -38,11 +39,14 @@ public class Dictionary {
         /**
          * 字典名称
          */
+        @NotEmpty
+        @Size(min = 2, max = 10, message = "联系人名称")
         @Field
         private String name;
         /**
          * 字典描述
          */
+        @NotEmpty
         @Field
         private String describe;
         /**

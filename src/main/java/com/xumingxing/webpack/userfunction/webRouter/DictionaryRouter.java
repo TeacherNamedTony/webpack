@@ -25,12 +25,16 @@ public class DictionaryRouter {
     private DictionaryHandler dictionaryHandler;
 
     @Bean
-    public RouterFunction<ServerResponse> mongoRouterFounction() {
+    public RouterFunction<ServerResponse> mongoRouterFunction() {
         return
                 /**
                  * GET请求
                  * 根据id获取user信息
                  * 返回查询信息
+                 *
+                 * 徐明星 2019
+                 * xumingxing 2019
+                 *
                  */
                 route(GET("/dictionary/getone/{id}"), dictionaryHandler::getOne)
 
@@ -40,6 +44,12 @@ public class DictionaryRouter {
                          * 返回查询信息
                          */
                         .andRoute(GET("/dictionary/getall"), dictionaryHandler::getAll)
+                        /**
+                         * GET请求
+                         * 根据id查询两个user
+                         * 返回sort
+                         */
+                            .andRoute(GET("/dictionary/setexchange"), dictionaryHandler::setExchange)
                         /**
                          * POST请求
                          * 以json添加用户信息
@@ -59,10 +69,18 @@ public class DictionaryRouter {
                          * 返回状态信息
                          */
                         .andRoute(DELETE("/dictionary/ldelete/{id}").and(accept(APPLICATION_JSON_UTF8)), dictionaryHandler::logicalDelete)
-
-
-
-
+                        /**
+                         * GET请求
+                         * t同步阻塞分页查询
+                         * 返回查询信息
+                         */
+                        .andRoute(GET("/dictionary/querysyn").and(accept(APPLICATION_JSON_UTF8)), dictionaryHandler::querySynchronization)
+                        /**
+                         * GET请求
+                         * 异步分页查询
+                         * 返回查询信息
+                         */
+                        .andRoute(GET("/dictionary/queryasyn").and(accept(APPLICATION_JSON_UTF8)), dictionaryHandler::queryAsynchronous)
                 ;
     }
 }

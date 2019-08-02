@@ -187,9 +187,9 @@ public class UserHandler {
                                     user.setDelete(1);
                                     return userReactiveRepository.save(user);
                                 })
-                                .map(user -> ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))
-                        ,String.class);
+                                .map(user -> ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA)),String.class);
     }
+
     /**
      * GET请求方式
      * 分页查询
