@@ -48,12 +48,12 @@ public class DictionaryHandler {
     private MongoTemplate mongoTemplate;
 
     /**
-     * GET请求方式
-     * 查询单个
+     * 依据ID获取数据字典单条信息
      * 路径取参数 pathVariable("id")
      *
      * @param serverRequest
-     * @return
+     * @return HTTP 200
+     * @apiNote 徐明星 2019-07-30 单条记录查询
      */
     public Mono<ServerResponse> getOne(ServerRequest serverRequest) {
         return ServerResponse
@@ -70,11 +70,11 @@ public class DictionaryHandler {
     }
 
     /**
-     * GET请求方式
-     * 查询所有
+     * 依据ID获取所有数据字典信息
      *
      * @param serverRequest
-     * @return
+     * @return HTTP 200
+     * @apiNote 徐明星 2019-07-30 全部记录查询
      */
     public Mono<ServerResponse> getAll(ServerRequest serverRequest) {
 
@@ -94,13 +94,14 @@ public class DictionaryHandler {
     }
 
     /**
-     * GET请求方式
-     * 查询两个id
-     * 路径取参数 pathVariable("id")
+     * 查询两个id交换sort排序序号
+     * 参数 ("id1" "id1.sort" "id2" "id2.sort")
      *
      * @param serverRequest
-     * @return
+     * @return HTTP 200
+     * @apiNote 徐明星 2019-08-01 交换两条信息顺序
      */
+
     public Mono<ServerResponse> setExchange(ServerRequest serverRequest) {
 
         MultiValueMap<String, String> id = serverRequest.queryParams();
@@ -108,12 +109,12 @@ public class DictionaryHandler {
         String id1_sort = id.getFirst("id1_sort");
         String id2 = id.getFirst("id2");
         String id2_sort = id.getFirst("id2_sort");
-        Query query=new Query(Criteria.where("id").is(id1));
-        Update update = Update.update("sort",id2_sort);
-        mongoTemplate.updateFirst(query, update, Dictionary.class,"dictionary");
-        Query query1=new Query(Criteria.where("id").is(id2));
-        Update update1 = Update.update("sort",id1_sort);
-        mongoTemplate.updateFirst(query1, update1, Dictionary.class,"dictionary");
+        Query query = new Query(Criteria.where("id").is(id1));
+        Update update = Update.update("sort", id2_sort);
+        mongoTemplate.updateFirst(query, update, Dictionary.class, "dictionary");
+        Query query1 = new Query(Criteria.where("id").is(id2));
+        Update update1 = Update.update("sort", id1_sort);
+        mongoTemplate.updateFirst(query1, update1, Dictionary.class, "dictionary");
         return ServerResponse
                 //状态200
                 .status(HttpStatus.OK)
@@ -129,45 +130,12 @@ public class DictionaryHandler {
     }
 
     /**
-     * POST请求方式
-     * 添加信息 JSON格式
+     * 添加一条记录 JSON格式
      *
      * @param serverRequest
-     * @return
+     * @return HTTP 200
+     * @apiNote 徐明星 2019-08-02 添加一条记录，并且序号作为最大
      */
-//    public Mono<ServerResponse> addJson(ServerRequest serverRequest) {
-//        Aggregation aggregation5 = Aggregation.newAggregation(
-//                Aggregation.match(Criteria.where("classify").is("select")),
-//                Aggregation.unwind("sort"),
-//                Aggregation.group("$classify").max("$sort").as("max_sort"));
-//        AggregationResults<Document> outputTypeCount5 =
-//                mongoTemplate.aggregate(aggregation5, "dictionary", Document.class);
-//        Document document = outputTypeCount5.getMappedResults().get(0);
-//        Integer max_sort = document.getInteger("max_sort");
-//        System.out.println("当前最大sort为"+max_sort);
-//        return ServerResponse
-//                //状态200
-//                .status(HttpStatus.OK)
-//                //contentType类型指定
-//                .contentType(MediaType.APPLICATION_JSON_UTF8)
-//                //读取内容
-//
-//                .body(serverRequest.bodyToMono(Dictionary.class)
-//                        .doOnNext(DictionaryValidate::validate)
-//                        .flatMap(dictionary -> {
-//                    // 校验器
-//                    //设置id
-//                    dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
-//                    //设置操作时间
-//                    dictionary.setCreateTime(LocalDateTime.now());
-//                    //设置修改时间
-//                    dictionary.setReviseTime(LocalDateTime.now());
-//                    //设置查询后的排序为最大
-//                    dictionary.setSort(max_sort + 1);
-//                    //插入消费
-//                    return dictionaryReactiveRepository.insert(dictionary);
-//                }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
-//    }
     public Mono<ServerResponse> addJson(ServerRequest serverRequest) {
         Aggregation aggregation5 = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("classify").is("select")),
@@ -175,7 +143,9 @@ public class DictionaryHandler {
                 Aggregation.group("$classify").max("$sort").as("max_sort"));
         AggregationResults<Document> outputTypeCount5 =
                 mongoTemplate.aggregate(aggregation5, "dictionary", Document.class);
-        System.out.println(outputTypeCount5.getMappedResults());
+        Document document = outputTypeCount5.getMappedResults().get(0);
+        Integer max_sort = document.getInteger("max_sort");
+        System.out.println("当前最大sort为" + max_sort);
         return ServerResponse
                 //状态200
                 .status(HttpStatus.OK)
@@ -183,17 +153,28 @@ public class DictionaryHandler {
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 //读取内容
                 .body(serverRequest.bodyToMono(Dictionary.class)
+                        .doOnNext(DictionaryValidate::validate)
                         .flatMap(dictionary -> {
+                            // 校验器
+                            //设置id
+                            dictionary.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+                            //设置操作时间
+                            dictionary.setCreateTime(LocalDateTime.now());
+                            //设置修改时间
+                            dictionary.setReviseTime(LocalDateTime.now());
+                            //设置查询后的排序为最大
+                            dictionary.setSort(max_sort + 1);
+                            //插入消费
                             return dictionaryReactiveRepository.insert(dictionary);
                         }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
     }
 
     /**
-     * PUT请求方式
      * 修改信息 JSON格式
      *
      * @param serverRequest
-     * @return
+     * @return HTTP 200
+     * @apiNote 徐明星 2019-07-31 修改一条记录的信息，待优化。
      */
     public Mono<ServerResponse> updateJson(ServerRequest serverRequest) {
 
@@ -204,16 +185,16 @@ public class DictionaryHandler {
                         .flatMap(dictionary -> {
                             dictionary.setReviseTime(LocalDateTime.now());
                             return dictionaryReactiveRepository.save(dictionary);
-                        }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))),String.class);
+                        }).then(Mono.just(ResponseEntity.responseToJSONStringNoneData(ResponseStatus.SUCCESS_NONE_DATA))), String.class);
     }
 
     /**
-     * DELETE请求方式
      * 逻辑删除
-     * 0正常 1删除
+     * 路径取参数 pathVariable("id")
      *
      * @param serverRequest
-     * @return
+     * @return HTTP 200
+     * @apiNote 徐明星 2019-07-31 逻辑删除一条记录的信息。
      */
     public Mono<ServerResponse> logicalDelete(ServerRequest serverRequest) {
 
@@ -230,7 +211,6 @@ public class DictionaryHandler {
     }
 
     /**
-     * GET请求方式
      * 分页查询
      * MultiValueMap<String, String> stringStringMultiValueMap = serverRequest.queryParams();
      * Optional<String> value = serverRequest.queryParam("key")
@@ -240,7 +220,8 @@ public class DictionaryHandler {
      * 当前为同步执行
      *
      * @param serverRequest
-     * @return
+     * @return ResponseStatus.SUCCESS
+     * @apiNote 徐明星 2019-07-31 同步分页查询。
      */
     public Mono<ServerResponse> querySynchronization(ServerRequest serverRequest) {
         int page = Integer.parseInt(serverRequest.queryParam("page").orElse("1"));
@@ -263,8 +244,9 @@ public class DictionaryHandler {
      *
      * @param classify 分类
      * @param page     页码
-     * @return {@see ResponseEntity } {@see PageEntity}
+     * @return ResponseStatus.SUCCESS
      * @author
+     * @apiNote 徐明星 2019-08-01 异步分页查询。
      * @see PageEntity
      */
     public Mono<ServerResponse> queryAsynchronous(ServerRequest serverRequest) {

@@ -29,33 +29,33 @@ public class DictionaryRouter {
         return
                 /**
                  * GET请求
-                 * 根据id获取user信息
+                 * 根据id获取dictionary信息
                  * 返回查询信息
                  */
                 route(GET("/dictionary/getone/{id}"), dictionaryHandler::getOne)
 
                         /**
                          * GET请求
-                         * 获取所有user信息
+                         * 获取所有dictionary信息
                          * 返回查询信息
                          */
                         .andRoute(GET("/dictionary/getall"), dictionaryHandler::getAll)
                         /**
                          * GET请求
-                         * 根据id查询两个user
+                         * 根据id查询两个dictionary
                          * 返回sort
                          */
                             .andRoute(GET("/dictionary/setexchange"), dictionaryHandler::setExchange)
                         /**
                          * POST请求
-                         * 以json添加用户信息
+                         * 以json添加dictionary信息
                          * JSON格式
                          * 返回状态信息
                          */
                         .andRoute(POST("/dictionary/addjson").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), dictionaryHandler::addJson)
                         /**
                          * PUT请求
-                         * 以json修改用户信息
+                         * 以json修改dictionary信息
                          * 返回状态信息
                          */
                         .andRoute(PUT("/dictionary/updatejson").and(accept(APPLICATION_JSON_UTF8)), dictionaryHandler::updateJson)
